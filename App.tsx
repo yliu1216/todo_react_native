@@ -1,62 +1,49 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState} from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   useColorScheme,
   View,
 } from 'react-native';
+import Todo from './components/todo';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+
+  const [todo, setTodo] = useState('');
+  const [todoList, setTodoList] = useState([]);
+  function handleClick() {
+    if (todo !== '') {
+      addTodo(todo);
+      setTodo(''); // Reset input field after adding todo
+    }
+  }
+
+  function addTodo(newTodo: string) {
+    setTodoList(currentTodos => [...currentTodos, { id: Date.now(), text: newTodo }]);
+  }
+
+  function deleteTodo(id: number){
+    setTodoList(currentTodos => currentTodos.filter(todo => todo.id !== id));
+  }
+
+  function editTodo(id: number, newText: string){
+    setTodoList(currentTodos =>
+      currentTodos.map(todo => {
+        if (todo.id === id) {
+          return {...todo, text: newText};
+        }
+        return todo;
+      }),
+    );
+  }
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -64,33 +51,18 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+      <ScrollView>
+      <Text style={styles.sectionTitle}> Add Todos </Text>
+      <TextInput
+        onChangeText={setTodo}
+        value={todo}
+        placeholder="please enter your to-dos"
+        style={styles.sectionContainer}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
+      <Button onPress={handleClick} title="Add To Do" />
+      {todoList.map((todoItem, index) => (
+          <Todo onDelete={deleteTodo} onEdit={editTodo} todoItem={todoItem} id={todoItem.id}/>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -104,6 +76,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '600',
+    textAlign: 'center',
   },
   sectionDescription: {
     marginTop: 8,
